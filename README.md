@@ -6,6 +6,8 @@ A local Windows study game for learning to read and reason through Python in pre
 
 Open `outputs/Python Mission Control/Python Mission Control.exe` in the portable release folder, or run the installer in `outputs/`. Keep the portable executable beside its `mission-python` folder. The bundled CPython runtime means Python does not need to be installed to study. Microsoft Edge WebView2 Runtime must already be installed; the installer does not download anything.
 
+Resize using any window edge or corner, or use the title-bar maximize/restore button. The initial content size is 1200 by 800 logical pixels; the minimum is 360 by 480. The interface adapts to narrower windows.
+
 Launch the portable release from this repository:
 
 ```powershell

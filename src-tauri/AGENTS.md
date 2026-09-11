@@ -7,6 +7,7 @@ Host the local React application, persist the learner's progress and execute the
 `src/storage.rs` owns transactional SQLite persistence and preservation on invalid data. `src/runner.rs` owns subprocess limits and trace parsing. `src/lib.rs` exposes only narrow Tauri commands. `tauri.conf.json` owns Windows packaging.
 
 ## Local Contracts
+- Keep the native window resizable and maximizable. Default content size is 1200 by 800 logical pixels; allow resizing down to 360 by 480 so smaller windows use the responsive interface.
 - Renderer commands are `load_progress`, `save_progress`, `run_trace` and read-only `runtime_info`. Do not expose arbitrary filesystem paths, shell commands or unrestricted execution.
 - Store the versioned progress JSON in the OS application-data directory's `progress.sqlite3`. Each save transaction keeps the preceding valid snapshot. Invalid or corrupt saved data must produce an error and must not be overwritten silently.
 - Reserve each profile before creating renderer windows with an exclusive OS handle to `profile.lock`, held in managed state for the application lifetime. A second instance of the same profile must show an actionable startup error through load/save IPC and cannot access its progress. Retry may acquire ownership after the first instance closes; successful ownership is never released while that app is running. Distinct isolated profiles remain independent. The marker may remain on disk after exit; ownership depends on the live handle, so crashes do not create stale locks.

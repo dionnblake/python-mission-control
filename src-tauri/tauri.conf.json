@@ -12,10 +12,12 @@
   "app": {
     "windows": [{
       "title": "Python Mission Control",
-      "width": 1440,
-      "height": 960,
-      "minWidth": 900,
-      "minHeight": 650,
+      "width": 1200,
+      "height": 800,
+      "minWidth": 360,
+      "minHeight": 480,
+      "resizable": true,
+      "maximizable": true,
       "backgroundColor": "#101714"
     }],
     "security": {

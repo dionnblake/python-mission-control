@@ -9,6 +9,7 @@ App.tsx and components own screens. bridge.ts owns typed native IPC. types.ts de
 - Preserve pre-answer hint use and committed answers when a mission is resumed. Bind asynchronous repair results to the originating question. Repairs and skips are recorded as assisted attempts in the same concept.
 - Python Machine replaces the prediction workspace while open. Its trace is validated recursively at the IPC boundary. Comprehensions show completed-expression snapshots with an explicit scope note.
 - Respect reduced motion, keyboard focus, text zoom, and typing fields.
+- Keep navigation reachable down to the native window minimum of 360 by 480 logical pixels. The desktop sidebar scrolls independently in short windows; narrow windows use the responsive header.
 - Bundle fonts as local files. Vite must not inline font data URLs because the desktop CSP permits same-origin fonts only.
 - Every visible control must have working behavior and errors must be actionable.
 ## Work Guidance
