@@ -1,0 +1,42 @@
+/* Graphite and amber workbench for focused, daily Python reasoning.
+   Shared color, typography, spacing, and motion tokens for the desktop UI. */
+:root {
+  color-scheme: dark;
+  --color-paper: oklch(19.8% 0.008 205);
+  --color-sidebar: oklch(16.7% 0.008 205);
+  --color-surface: oklch(22.6% 0.009 205);
+  --color-raised: oklch(25.5% 0.01 205);
+  --color-code: oklch(17.4% 0.007 205);
+  --color-rule: oklch(31% 0.011 205);
+  --color-rule-soft: oklch(26.5% 0.011 205);
+  --color-ink: oklch(94.7% 0.008 87);
+  --color-secondary: oklch(80% 0.012 205);
+  --color-muted: oklch(69.5% 0.014 205);
+  --color-accent: oklch(80% 0.135 72);
+  --color-accent-hover: oklch(87% 0.13 78);
+  --color-accent-ink: oklch(19.5% 0.017 65);
+  --color-accent-wash: oklch(27% 0.024 73);
+  --color-success: oklch(80.5% 0.109 158);
+  --color-success-wash: oklch(26% 0.022 157);
+  --color-error: oklch(79% 0.113 30);
+  --color-error-wash: oklch(27% 0.03 30);
+  --color-focus: oklch(96% 0.015 100);
+  --color-syntax-key: oklch(79.5% 0.09 75);
+  --color-syntax-string: oklch(80% 0.08 160);
+  --color-syntax-number: oklch(84% 0.07 230);
+  --color-transparent: transparent;
+  --font-body: "Manrope Variable", sans-serif;
+  --font-code: "IBM Plex Mono", monospace;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --dur-fast: 140ms;
+  --dur-normal: 220ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}

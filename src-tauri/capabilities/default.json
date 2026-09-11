@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-local",
+  "description": "Local study window only",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

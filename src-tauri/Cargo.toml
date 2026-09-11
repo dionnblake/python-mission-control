@@ -1,0 +1,23 @@
+[package]
+name = "python-mission-control"
+version = "0.1.0"
+description = "Local Python reasoning and exam practice"
+authors = ["Blake"]
+edition = "2021"
+
+[lib]
+name = "python_mission_control_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+doctest = false
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.38", features = ["bundled"] }
+
+[dev-dependencies]
+tempfile = "3"
