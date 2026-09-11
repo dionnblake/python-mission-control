@@ -12,6 +12,9 @@ export async function loadProgress(): Promise<unknown> {
 export async function saveProgress(progress: Progress): Promise<void> {
   return invoke("save_progress", { progress });
 }
+export async function resetProgress(progress: Progress): Promise<void> {
+  return invoke("reset_progress", { progress });
+}
 export function parseTrace(raw: unknown): TraceResult {
   if (!raw || typeof raw !== "object")
     throw new Error("Python returned an invalid trace.");

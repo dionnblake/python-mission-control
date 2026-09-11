@@ -109,12 +109,16 @@ export function ChallengeView({
   const repairStart = useRef(Date.now());
   const startedAt = useRef(Date.now());
   const heading = useRef<HTMLHeadingElement>(null);
+  const mounted = useRef(true);
   const answer = challenge.type === "order-lines" ? order.join("|") : selected;
   const correct = answer === challenge.answer;
   const faded = scaffold === "independent";
   const hintAllowed = scaffold === "guided";
   useEffect(() => {
     heading.current?.focus();
+    return () => {
+      mounted.current = false;
+    };
   }, []);
 
   function commit() {
@@ -166,12 +170,13 @@ export function ChallengeView({
     setError("");
     try {
       const result = trace || (await runTrace(challenge.code));
+      if (!mounted.current) return;
       setTrace(result);
       setMachine(true);
     } catch (e) {
-      setError(String(e));
+      if (mounted.current) setError(String(e));
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
   async function verifyRepair() {
@@ -187,6 +192,7 @@ export function ChallengeView({
       repairAnswer === repair.answer ? repair.code : lines.join("\n");
     try {
       const result = await runTrace(code);
+      if (!mounted.current) return;
       const valid =
         repairAnswer === repair.answer &&
         !result.error &&
@@ -196,9 +202,9 @@ export function ChallengeView({
       onRepair(repairAnswer, valid, Date.now() - repairStart.current);
       repairStart.current = Date.now();
     } catch (e) {
-      setError(String(e));
+      if (mounted.current) setError(String(e));
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
   function continueSafely() {

@@ -4,7 +4,7 @@
 Provide deterministic answer evaluation, practice selection, review scheduling, exam scoring, and persisted-data validation.
 
 ## Ownership
-`learning.ts` owns pure calculations. Components own session transitions and saving. Curriculum owns challenge answers and default blueprint weights.
+`learning.ts` owns challenge/exam calculations and `flashcards.ts` owns pure retention scheduling, queue selection, review signals and flashcard state transitions. Components own session transitions and saving. Curriculum owns challenge answers and default blueprint weights.
 
 ## Local Contracts
 - Concepts are challenge families. Every committed attempt has a unique ID; replaying an ID never awards progress twice.
@@ -16,12 +16,13 @@ Provide deterministic answer evaluation, practice selection, review scheduling, 
 - Missions reserve up to 40% of slots for due review, then balance the configured topic weights. Zero-weight topics are excluded when positive-weight content exists. Foundation topic multipliers are 2 for variables, 1.5 for strings/conditionals, and 0.5 for exceptions/other. New variants and distinct families are preferred; a last variant is withheld when another eligible variant exists.
 - Exams use seeded weighted selection. Within each selected topic, unused families take precedence. Question IDs never repeat. Insufficient positively weighted content yields a shorter exam. All-zero external weights fall back to equal weights.
 - Persistence validation rejects malformed data and inconsistent aggregates with a visible error. Do not silently discard/reset learner data. Study-day keys use the learner computer's local calendar date.
+- Flashcards use a small deterministic interval ladder. Training and submitted-exam signals can promote explicitly linked cards, but self-ratings never alter exam scoring or certification signals.
 
 ## Work Guidance
 Keep algorithms pure and bounded. Use curriculum defaults rather than duplicating them. Do not infer real-exam pass probability from XP or practice accuracy.
 
 ## Verification
-`npm test -- src/core/learning.test.ts` and `npm run typecheck`. Tests cover edge cases and persisted corruption as well as normal practice.
+`npm test -- src/core/learning.test.ts src/core/flashcards.test.ts` and `npm run typecheck`. Tests cover edge cases, persisted corruption, flashcard migration, malformed cards, review intervals and normal practice.
 
 ## Child DOX Index
 None.

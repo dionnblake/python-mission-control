@@ -107,6 +107,37 @@ export interface Settings {
   textScale: number;
   weights: Record<Topic, number>;
 }
+export type FlashcardType = "concept" | "code";
+export type FlashcardRating = "again" | "hard" | "got-it";
+export interface Flashcard {
+  id: string;
+  topic: Topic;
+  concept: string;
+  type: FlashcardType;
+  difficulty: 1 | 2 | 3;
+  front: string;
+  answer: string;
+  explanation: string;
+  code?: string;
+  output?: string;
+  relatedMisconceptions: string[];
+  relatedChallengeIds: string[];
+}
+export interface FlashcardState {
+  cardId: string;
+  topic: Topic;
+  concept: string;
+  firstSeen: number;
+  lastReviewed: number;
+  nextDue: number;
+  reviews: number;
+  againCount: number;
+  hardCount: number;
+  gotItCount: number;
+  stage: number;
+  intervalDays: number;
+  priority: number;
+}
 export interface ActiveAssessment {
   id: string;
   mode: "baseline" | "exam";
@@ -130,6 +161,7 @@ export interface Progress {
   attempts: Attempt[];
   exams: ExamResult[];
   settings: Settings;
+  flashcards: Record<string, FlashcardState>;
   activeAssessment?: ActiveAssessment;
 }
 export interface TraceChange {

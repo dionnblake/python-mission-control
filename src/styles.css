@@ -2418,6 +2418,53 @@ kbd {
   font-size: 0.75rem;
   color: var(--color-success);
 }
+.reset-section {
+  border-top-color: var(--color-error);
+}
+.reset-section h2 {
+  color: var(--color-error);
+}
+.reset-controls {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 14px;
+}
+.reset-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 650;
+  border: 1px solid var(--color-error);
+  padding: 10px 18px;
+  color: var(--color-error);
+  background: var(--color-transparent);
+}
+.reset-button:hover:not(:disabled) {
+  background: var(--color-error-wash);
+}
+.reset-confirmation {
+  width: 100%;
+  padding: 16px 18px;
+  border: 1px solid var(--color-error);
+  background: var(--color-error-wash);
+}
+.reset-confirmation strong {
+  color: var(--color-error);
+  font-size: 0.82rem;
+}
+.reset-confirmation h3 {
+  color: var(--color-error);
+  font-size: 0.82rem;
+}
+.reset-confirmation p {
+  margin-top: 8px;
+}
+.reset-confirmation .actions {
+  margin-top: 14px;
+}
 .session-summary {
   max-width: 760px;
   text-align: center;
@@ -3687,5 +3734,807 @@ kbd {
   }
   .mission-brief > .start-cta {
     font-size: 0.65rem;
+  }
+}
+
+/* Flashcards keep the same graphite workbench, with the answer kept visually
+   separate so recall remains the central interaction. */
+.flashcards-screen {
+  min-width: 0;
+}
+.flashcards-heading {
+  margin-bottom: 27px;
+}
+.flashcards-heading .eyebrow {
+  color: var(--color-accent);
+}
+.flashcards-heading p {
+  font-size: 0.86rem;
+}
+.flashcard-start-heading {
+  min-height: 50px;
+}
+.flashcard-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(440px, 1fr);
+  gap: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-rule);
+  margin-bottom: 34px;
+}
+.flashcard-overview-lead {
+  padding: 32px 34px;
+  min-width: 0;
+}
+.flashcard-overview-lead .eyebrow {
+  color: var(--color-accent);
+}
+.flashcard-overview-lead h2 {
+  font-size: 1.55rem;
+  margin: 15px 0 11px;
+  letter-spacing: -0.04em;
+}
+.flashcard-overview-lead p {
+  max-width: 510px;
+  font-size: 0.78rem;
+  line-height: 1.85;
+}
+.flashcard-overview-lead .start-cta {
+  margin-top: 22px;
+}
+.flashcard-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-left: 1px solid var(--color-rule);
+}
+.flashcard-summary-stats > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 24px 25px;
+  border-bottom: 1px solid var(--color-rule-soft);
+}
+.flashcard-summary-stats > div:nth-child(odd) {
+  border-right: 1px solid var(--color-rule-soft);
+}
+.flashcard-summary-stats > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+.flashcard-summary-stats span,
+.flashcard-home-count span,
+.progress-flashcard-grid span {
+  color: var(--color-muted);
+  font-size: 0.61rem;
+  font-family: var(--font-code);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.flashcard-summary-stats b {
+  font-family: var(--font-code);
+  color: var(--color-accent);
+  font-size: 1.7rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.flashcard-summary-stats .flashcard-stat-topic {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  font-size: 1.05rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.flashcard-summary-stats small {
+  color: var(--color-muted);
+  font-size: 0.61rem;
+  line-height: 1.45;
+}
+.flashcard-filter-section {
+  margin-bottom: 31px;
+}
+.flashcard-filter-section .section-heading {
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+.flashcard-filter-section .section-heading > div p {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  margin-top: 7px;
+}
+.flashcard-controls {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+.flashcard-modes {
+  display: flex;
+  border: 1px solid var(--color-rule);
+  background: var(--color-code);
+  padding: 3px;
+}
+.flashcard-modes button {
+  min-height: 39px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-transparent);
+  color: var(--color-muted);
+  background: var(--color-transparent);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+.flashcard-modes button:hover {
+  color: var(--color-ink);
+}
+.flashcard-modes button.active {
+  color: var(--color-accent-ink);
+  background: var(--color-accent);
+}
+.flashcard-topic-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 45px;
+  border: 1px solid var(--color-rule);
+  padding: 0 12px;
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: 0.59rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.flashcard-topic-filter select {
+  min-height: 34px;
+  border: 0;
+  background: var(--color-transparent);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  outline: none;
+}
+.flashcard-filter-start {
+  margin-left: auto;
+  min-height: 45px;
+  font-size: 0.69rem;
+}
+.flashcard-mode-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: 0.61rem;
+  margin-top: 14px;
+}
+.flashcard-mode-note svg {
+  color: var(--color-accent);
+}
+.flashcard-empty-filter {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 0 0;
+  color: var(--color-muted);
+}
+.flashcard-empty-filter > svg {
+  color: var(--color-accent);
+  margin-top: 2px;
+}
+.flashcard-empty-filter h3 {
+  font-size: 0.84rem;
+}
+.flashcard-empty-filter p {
+  font-size: 0.7rem;
+  margin-top: 5px;
+}
+.flashcard-principles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  border-top: 1px solid var(--color-rule);
+  padding-top: 25px;
+}
+.flashcard-principles > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.flashcard-principles svg {
+  color: var(--color-accent);
+  margin-top: 2px;
+}
+.flashcard-principles h3 {
+  font-size: 0.82rem;
+}
+.flashcard-principles p {
+  color: var(--color-muted);
+  font-size: 0.69rem;
+  line-height: 1.75;
+  margin-top: 5px;
+}
+.flashcard-home-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid var(--color-rule);
+  background: var(--color-surface);
+  padding: 20px 23px;
+  margin: 28px 0 31px;
+}
+.flashcard-home-mark {
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 47px;
+  color: var(--color-accent);
+  background: var(--color-accent-wash);
+  border: 1px solid var(--color-rule);
+}
+.flashcard-home-copy {
+  min-width: 0;
+}
+.flashcard-home-copy .eyebrow {
+  color: var(--color-accent);
+  font-size: 0.56rem;
+}
+.flashcard-home-copy h2 {
+  font-size: 0.97rem;
+  margin: 7px 0 5px;
+  overflow-wrap: anywhere;
+}
+.flashcard-home-copy p {
+  color: var(--color-muted);
+  font-size: 0.67rem;
+  line-height: 1.6;
+}
+.flashcard-home-count {
+  min-width: 78px;
+  text-align: right;
+}
+.flashcard-home-count b {
+  display: block;
+  color: var(--color-accent);
+  font-family: var(--font-code);
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.flashcard-home-strip > .secondary {
+  min-height: 43px;
+  font-size: 0.67rem;
+}
+.progress-flashcards {
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+  padding: 25px 0 27px;
+  margin-bottom: 37px;
+}
+.progress-flashcards .section-heading {
+  margin-bottom: 20px;
+}
+.progress-flashcards .section-heading p {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  margin-top: 6px;
+}
+.progress-flashcard-grid {
+  display: grid;
+  grid-template-columns: 0.7fr 0.9fr 0.8fr 1.6fr;
+  gap: 22px;
+  align-items: center;
+}
+.progress-flashcard-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.progress-flashcard-grid b {
+  font-family: var(--font-code);
+  color: var(--color-accent);
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.progress-flashcard-grid small {
+  color: var(--color-muted);
+  font-size: 0.59rem;
+}
+.progress-flashcard-note {
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 10px !important;
+  padding-left: 20px;
+  border-left: 1px solid var(--color-rule);
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  line-height: 1.65;
+}
+.progress-flashcard-note svg {
+  color: var(--color-accent);
+  margin-top: 2px;
+}
+.flashcard-session-screen {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+.flashcard-session-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 21px;
+}
+.flashcard-session-header > .ghost {
+  justify-self: start;
+  padding-left: 0;
+  font-size: 0.68rem;
+}
+.flashcard-session-header > .eyebrow {
+  justify-self: center;
+  color: var(--color-accent);
+  text-align: center;
+}
+.flashcard-session-count {
+  justify-self: end;
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+.flashcard-session-track {
+  display: flex;
+  gap: 5px;
+  height: 3px;
+  margin-bottom: 26px;
+}
+.flashcard-session-track > span {
+  flex: 1 1 0;
+  min-width: 2px;
+  background: var(--color-rule);
+}
+.flashcard-session-track > .complete {
+  background: var(--color-success);
+}
+.flashcard-session-track > .current {
+  background: var(--color-accent);
+}
+.flashcard-study-surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-rule);
+  padding: 30px 34px 33px;
+  min-width: 0;
+}
+.flashcard-study-surface:focus-visible {
+  border-color: var(--color-accent);
+}
+.flashcard-card-heading {
+  border-bottom: 1px solid var(--color-rule-soft);
+  padding-bottom: 19px;
+}
+.flashcard-card-heading .topic-bar {
+  margin-bottom: 10px;
+}
+.flashcard-card-concept {
+  color: var(--color-ink);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+.flashcard-priority {
+  float: right;
+  color: var(--color-accent);
+  font-family: var(--font-code);
+  font-size: 0.54rem;
+  letter-spacing: 0.09em;
+  margin-top: 3px;
+}
+.flashcard-prompt {
+  padding: 34px 0 25px;
+}
+.flashcard-prompt .eyebrow {
+  color: var(--color-accent);
+}
+.flashcard-prompt h1 {
+  max-width: 850px;
+  font-size: 2.25rem;
+  letter-spacing: -0.05em;
+  line-height: 1.25;
+  margin-top: 16px;
+}
+.flashcard-study-surface > .code-panel {
+  margin: 0 0 23px;
+}
+.flashcard-study-surface > .code-panel pre {
+  min-height: 0;
+  padding-top: 21px;
+  padding-bottom: 21px;
+}
+.flashcard-reveal-area {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-top: 1px solid var(--color-rule-soft);
+  padding-top: 25px;
+}
+.flashcard-reveal {
+  min-width: 194px;
+  min-height: 52px;
+}
+.flashcard-reveal kbd {
+  margin-left: 5px;
+}
+.flashcard-reveal-area > span {
+  color: var(--color-muted);
+  font-size: 0.67rem;
+}
+.flashcard-answer-area {
+  border-top: 1px solid var(--color-rule-soft);
+  padding-top: 25px;
+}
+.flashcard-answer {
+  border-left: 2px solid var(--color-accent);
+  padding: 2px 0 2px 19px;
+}
+.flashcard-answer > .eyebrow {
+  color: var(--color-accent);
+}
+.flashcard-answer-text {
+  color: var(--color-ink);
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.55;
+  margin-top: 10px;
+  white-space: pre-wrap;
+}
+.flashcard-output {
+  margin-top: 17px;
+}
+.flashcard-output > span {
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+}
+.flashcard-output pre {
+  background: var(--color-code);
+  border: 1px solid var(--color-rule-soft);
+  color: var(--color-syntax-string);
+  font-family: var(--font-code);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  margin-top: 7px;
+  max-height: 140px;
+  overflow: auto;
+  padding: 11px 14px;
+  white-space: pre-wrap;
+}
+.flashcard-explanation {
+  color: var(--color-secondary);
+  font-size: 0.75rem;
+  line-height: 1.8;
+  margin-top: 17px;
+  max-width: 780px;
+}
+.flashcard-rating-area {
+  margin-top: 29px;
+}
+.flashcard-rating-area > .eyebrow {
+  margin-bottom: 12px;
+}
+.flashcard-ratings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.flashcard-ratings button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 11px;
+  text-align: left;
+  min-height: 68px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-rule);
+  background: var(--color-code);
+  color: var(--color-ink);
+}
+.flashcard-ratings button:hover {
+  border-color: var(--color-muted);
+  background: var(--color-raised);
+}
+.flashcard-ratings button:focus-visible {
+  border-color: var(--color-focus);
+}
+.flashcard-ratings button.again:hover {
+  border-color: var(--color-error);
+}
+.flashcard-ratings button.hard:hover {
+  border-color: var(--color-accent);
+}
+.flashcard-ratings button.got-it:hover {
+  border-color: var(--color-success);
+}
+.rating-key {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--color-rule);
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+}
+.flashcard-ratings b {
+  font-size: 0.76rem;
+}
+.flashcard-ratings small {
+  color: var(--color-muted);
+  font-size: 0.58rem;
+}
+.flashcard-ratings .again b {
+  color: var(--color-error);
+}
+.flashcard-ratings .hard b {
+  color: var(--color-accent);
+}
+.flashcard-ratings .got-it b {
+  color: var(--color-success);
+}
+.flashcard-session-summary {
+  max-width: 740px;
+  margin: 28px auto 0;
+  text-align: center;
+}
+.flashcard-session-summary > .summary-mark {
+  margin: 0 auto 24px;
+}
+.flashcard-session-summary > .eyebrow {
+  justify-content: center;
+  color: var(--color-accent);
+}
+.flashcard-session-summary > h1 {
+  font-size: 2.55rem;
+  margin: 18px 0 14px;
+}
+.flashcard-session-summary > p {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+.flashcard-review-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--color-rule);
+  border: 1px solid var(--color-rule);
+  margin: 33px 0 24px;
+}
+.flashcard-review-summary-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 17px;
+  background: var(--color-surface);
+}
+.flashcard-review-summary-stats b {
+  color: var(--color-accent);
+  font-family: var(--font-code);
+  font-size: 1.65rem;
+  font-weight: 400;
+}
+.flashcard-review-summary-stats span {
+  color: var(--color-muted);
+  font-family: var(--font-code);
+  font-size: 0.59rem;
+  text-transform: uppercase;
+}
+.flashcard-summary-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  text-align: left;
+  border: 1px solid var(--color-rule);
+  background: var(--color-accent-wash);
+  padding: 16px 18px;
+  margin-bottom: 25px;
+}
+.flashcard-summary-note > svg {
+  color: var(--color-accent);
+  margin-top: 2px;
+}
+.flashcard-summary-note b,
+.flashcard-summary-note span {
+  display: block;
+}
+.flashcard-summary-note b {
+  font-size: 0.71rem;
+}
+.flashcard-summary-note span {
+  color: var(--color-secondary);
+  font-size: 0.68rem;
+  margin-top: 4px;
+}
+.flashcard-session-summary > .actions {
+  justify-content: center;
+}
+
+@media (max-width: 1100px) {
+  .flashcard-overview {
+    grid-template-columns: minmax(0, 1fr) minmax(350px, 0.9fr);
+  }
+  .flashcard-overview-lead {
+    padding: 28px 25px;
+  }
+  .flashcard-summary-stats > div {
+    padding: 20px 17px;
+  }
+  .progress-flashcard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .progress-flashcard-note {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid var(--color-rule-soft);
+    padding: 16px 0 0;
+  }
+}
+@media (max-width: 768px) {
+  .flashcard-overview {
+    display: block;
+  }
+  .flashcard-summary-stats {
+    border-left: 0;
+    border-top: 1px solid var(--color-rule);
+  }
+  .flashcard-home-strip {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .flashcard-home-strip > .secondary {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+  .flashcard-home-count {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .flashcard-filter-start {
+    margin-left: 0;
+  }
+  .flashcard-principles {
+    gap: 20px;
+  }
+  .flashcard-session-header {
+    grid-template-columns: 1fr auto;
+  }
+  .flashcard-session-header > .eyebrow {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .flashcard-session-count {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .flashcard-study-surface {
+    padding: 24px 22px 26px;
+  }
+  .flashcard-prompt h1 {
+    font-size: 1.85rem;
+  }
+}
+@media (max-width: 560px) {
+  .flashcards-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .flashcard-start-heading {
+    width: 100%;
+  }
+  .flashcard-overview-lead {
+    padding: 25px 21px;
+  }
+  .flashcard-overview-lead h2 {
+    font-size: 1.32rem;
+  }
+  .flashcard-summary-stats > div {
+    padding: 18px 14px;
+  }
+  .flashcard-summary-stats b {
+    font-size: 1.42rem;
+  }
+  .flashcard-summary-stats .flashcard-stat-topic {
+    font-size: 0.9rem;
+  }
+  .flashcard-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .flashcard-modes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .flashcard-modes button {
+    padding: 7px 4px;
+    font-size: 0.58rem;
+  }
+  .flashcard-topic-filter {
+    justify-content: space-between;
+  }
+  .flashcard-topic-filter select {
+    max-width: 70%;
+  }
+  .flashcard-filter-start {
+    width: 100%;
+  }
+  .flashcard-principles {
+    grid-template-columns: 1fr;
+    gap: 19px;
+  }
+  .flashcard-home-strip {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px;
+  }
+  .flashcard-home-count {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .flashcard-home-copy {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .flashcard-home-strip > .secondary {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+  }
+  .progress-flashcard-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 14px;
+  }
+  .progress-flashcard-note {
+    grid-column: 1 / -1;
+  }
+  .flashcard-session-header > .ghost {
+    font-size: 0.61rem;
+  }
+  .flashcard-study-surface {
+    padding: 20px 17px 22px;
+  }
+  .flashcard-prompt {
+    padding: 27px 0 21px;
+  }
+  .flashcard-prompt h1 {
+    font-size: 1.62rem;
+  }
+  .flashcard-reveal-area {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .flashcard-reveal {
+    width: 100%;
+  }
+  .flashcard-answer-text {
+    font-size: 0.94rem;
+  }
+  .flashcard-ratings {
+    grid-template-columns: 1fr;
+  }
+  .flashcard-ratings button {
+    min-height: 58px;
+  }
+  .flashcard-session-summary > h1 {
+    font-size: 2rem;
+  }
+  .flashcard-session-summary > .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .flashcard-session-summary > .actions > button {
+    width: 100%;
   }
 }

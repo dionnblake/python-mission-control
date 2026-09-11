@@ -1,9 +1,11 @@
 import { defaultWeights } from "../content";
+import { applyAttemptSignal } from "./flashcards";
 import type {
   Attempt,
   Challenge,
   ConceptProgress,
   ExamResult,
+  FlashcardState,
   Progress,
   Scaffold,
   Topic,
@@ -43,6 +45,7 @@ export function createProgress(now = Date.now()): Progress {
       textScale: 1,
       weights: { ...defaultWeights },
     },
+    flashcards: {},
   };
 }
 
@@ -131,7 +134,7 @@ export function recordAttempt(progress: Progress, attempt: Attempt): Progress {
       Number(!attempt.correct && attempt.confidence >= 4),
   };
   const day = studyDay(attempt.at);
-  return {
+  const nextProgress = {
     ...progress,
     xp: progress.xp + earnedXp(attempt),
     attempts: [...progress.attempts, { ...attempt }],
@@ -140,6 +143,7 @@ export function recordAttempt(progress: Progress, attempt: Attempt): Progress {
       ? [...progress.studyDays]
       : [...progress.studyDays, day].sort(),
   };
+  return applyAttemptSignal(nextProgress, attempt);
 }
 
 export function conceptStatus(
@@ -590,6 +594,44 @@ export function validateProgress(value: unknown): Progress {
   if (!TOPICS.some((topic) => (weights[topic] as number) > 0))
     invalid("settings.weights");
 
+  const flashcardsValue =
+    progress.flashcards === undefined ? {} : object(progress.flashcards, "flashcards");
+  const flashcards: Record<string, FlashcardState> = {};
+  for (const [id, value] of Object.entries(flashcardsValue)) {
+    const path = `flashcards.${id}`;
+    key(id, `${path}.id`);
+    const state = object(value, path);
+    key(state.cardId, `${path}.cardId`);
+    if (state.cardId !== id) invalid(`${path}.cardId`);
+    if (!TOPICS.includes(state.topic as Topic)) invalid(`${path}.topic`);
+    text(state.concept, `${path}.concept`, 256);
+    number(state.firstSeen, `${path}.firstSeen`, MAX_DATE);
+    number(state.lastReviewed, `${path}.lastReviewed`, MAX_DATE);
+    number(state.nextDue, `${path}.nextDue`, MAX_DATE);
+    for (const field of [
+      "reviews",
+      "againCount",
+      "hardCount",
+      "gotItCount",
+    ] as const)
+      number(state[field], `${path}.${field}`, MAX_ATTEMPTS);
+    number(state.stage, `${path}.stage`, 5);
+    number(state.intervalDays, `${path}.intervalDays`, 30);
+    number(state.priority, `${path}.priority`, 100, 0, false);
+    const typedState = state as unknown as FlashcardState;
+    if (
+      typedState.firstSeen > 0 &&
+      typedState.lastReviewed < typedState.firstSeen
+    )
+      invalid(`${path}.lastReviewed`);
+    if (
+      typedState.reviews !==
+      typedState.againCount + typedState.hardCount + typedState.gotItCount
+    )
+      invalid(`${path}.reviews`);
+    flashcards[id] = typedState;
+  }
+
   const attempts = array(progress.attempts, "attempts", MAX_ATTEMPTS);
   const ids = new Set<string>();
   const aggregates = new Map<string, ConceptProgress>();
@@ -742,5 +784,7 @@ export function validateProgress(value: unknown): Progress {
       }
     }
   }
-  return structuredClone(value as Progress);
+  const normalized = structuredClone(value as Progress);
+  normalized.flashcards = flashcards;
+  return normalized;
 }

@@ -147,6 +147,26 @@ pub fn save(path: &Path, progress: &Value) -> Result<(), String> {
     transaction.commit().map_err(storage_error)
 }
 
+/// Replace the learner snapshot for an explicit master reset. Unlike a normal
+/// save, this intentionally removes the recovery snapshot so the old profile
+/// cannot be restored from the database after confirmation.
+pub fn reset(path: &Path, progress: &Value) -> Result<(), String> {
+    validate(progress)?;
+    let serialized = serde_json::to_string(progress).map_err(storage_error)?;
+    if serialized.len() > MAX_PROGRESS_BYTES {
+        return Err("Progress is too large to save. Existing data has been preserved.".into());
+    }
+    let mut connection = open(path)?;
+    let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate).map_err(storage_error)?;
+    if let Some(current) = current_snapshot(&transaction)? {
+        // A reset must not hide corruption behind a new first-run profile.
+        parse_progress(&current)?;
+    }
+    transaction.execute("DELETE FROM snapshots WHERE name IN ('current','previous')", []).map_err(storage_error)?;
+    transaction.execute("INSERT INTO snapshots(name,data) VALUES ('current',?1)", params![serialized]).map_err(storage_error)?;
+    transaction.commit().map_err(storage_error)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -177,6 +197,41 @@ mod tests {
         let connection = Connection::open(path).unwrap();
         let previous: String = connection.query_row("SELECT data FROM snapshots WHERE name='previous'", [], |row| row.get(0)).unwrap();
         assert_eq!(parse_progress(&previous).unwrap(), progress(10));
+    }
+
+    #[test]
+    fn master_reset_replaces_current_and_removes_recovery_snapshot() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("progress.sqlite3");
+        save(&path, &progress(10)).unwrap();
+        save(&path, &progress(20)).unwrap();
+        reset(&path, &progress(0)).unwrap();
+        assert_eq!(load(&path).unwrap(), Some(progress(0)));
+        let connection = Connection::open(path).unwrap();
+        let previous_count: i64 = connection.query_row(
+            "SELECT count(*) FROM snapshots WHERE name='previous'",
+            [],
+            |row| row.get(0),
+        ).unwrap();
+        assert_eq!(previous_count, 0);
+    }
+
+    #[test]
+    fn master_reset_preserves_a_corrupt_current_snapshot() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("progress.sqlite3");
+        save(&path, &progress(42)).unwrap();
+        Connection::open(&path).unwrap().execute(
+            "UPDATE snapshots SET data='bad-json' WHERE name='current'",
+            [],
+        ).unwrap();
+        assert!(reset(&path, &progress(0)).is_err());
+        let data: String = Connection::open(path).unwrap().query_row(
+            "SELECT data FROM snapshots WHERE name='current'",
+            [],
+            |row| row.get(0),
+        ).unwrap();
+        assert_eq!(data, "bad-json");
     }
 
     #[test]

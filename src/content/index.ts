@@ -1,6 +1,7 @@
 import type { Challenge, Topic, TopicInfo } from "../types";
 import { foundation, ordering } from "./foundation";
 import { fluency } from "./fluency";
+import { flashcards, validateFlashcards } from "./flashcards";
 
 export const topics: TopicInfo[] = [
   {
@@ -68,6 +69,11 @@ export const defaultWeights: Record<Topic, number> = {
 };
 
 export const challenges: Challenge[] = [...foundation, ...ordering, ...fluency];
+export { flashcards, validateFlashcards } from "./flashcards";
+export const flashcardValidationErrors = validateFlashcards(
+  flashcards,
+  challenges.map((challenge) => challenge.id),
+);
 
 export const baselineIds: string[] = [
   "assignment-copy-1",

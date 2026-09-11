@@ -29,14 +29,19 @@ const server = await createServer({
   appType: "custom",
   optimizeDeps: { noDiscovery: true, entries: [] },
 });
-let challenges, bossIds;
+let challenges, bossIds, flashcards;
 let validateProgress, createProgress, recordAttempt, scaffoldFor, scoreExam;
+let rateFlashcard, selectFlashcards;
 try {
   ({ challenges, bossIds } = await server.ssrLoadModule(
     "/src/content/index.ts",
   ));
+  ({ flashcards } = await server.ssrLoadModule("/src/content/flashcards.ts"));
   ({ validateProgress, createProgress, recordAttempt, scaffoldFor, scoreExam } =
     await server.ssrLoadModule("/src/core/learning.ts"));
+  ({ rateFlashcard, selectFlashcards } = await server.ssrLoadModule(
+    "/src/core/flashcards.ts",
+  ));
 } finally {
   await server.close();
 }
@@ -337,6 +342,21 @@ async function nav(name) {
     .getByRole("button", { name, exact: true })
     .click();
 }
+async function ctrlWheel(deltaY) {
+  const session = await page.context().newCDPSession(page);
+  try {
+    await session.send("Input.dispatchMouseEvent", {
+      type: "mouseWheel",
+      x: 720,
+      y: 480,
+      deltaX: 0,
+      deltaY,
+      modifiers: 2,
+    });
+  } finally {
+    await session.detach();
+  }
+}
 async function answerQuestion(q, correct = true) {
   if (q.type === "order-lines") {
     const desired = [...q.order];
@@ -455,6 +475,165 @@ async function finishAssessment(kind, options = {}) {
   await shot(options.screenshotName ?? `${kind}-results`);
 }
 
+async function flashcardUIRegression() {
+  await nav("Flashcards");
+  await expect(page.locator(".flashcards-screen")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Recommended", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByText(/64 cards in this view/, { exact: false }),
+  ).toBeVisible();
+  await shot("flashcards-home");
+
+  await page.getByRole("button", { name: "Needs Work", exact: true }).click();
+  const flashcardSnapshot = validateProgress(await saved());
+  const emptyTopic = [...new Set(flashcards.map((card) => card.topic))].find(
+    (topic) =>
+      selectFlashcards(
+        flashcards,
+        flashcardSnapshot,
+        "needs-work",
+        topic,
+        Date.now(),
+        flashcards.length,
+      ).length === 0,
+  );
+  if (!emptyTopic) throw new Error("Smoke fixture has no empty Needs Work topic.");
+  await page.getByLabel("Flashcard topic", { exact: true }).selectOption(emptyTopic);
+  await expect(
+    page.getByText("No cards match this view yet.", { exact: true }),
+  ).toBeVisible();
+  passed("Flashcards Needs Work empty state is actionable");
+
+  await page.getByRole("button", { name: "All Cards", exact: true }).click();
+  await page.getByLabel("Flashcard topic", { exact: true }).selectOption("variables");
+  await expect(page.getByText(/8 cards in this view/, { exact: false })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Review this view", exact: true })
+    .click();
+  await expect(page.locator(".flashcard-study-surface")).toBeVisible();
+  await expect(page.getByText(/What does an assignment such as/)).toBeVisible();
+  await expect(page.locator(".flashcard-answer")).toHaveCount(0);
+  await expect(page.getByText(/CARD 1 \/ 8/)).toBeVisible();
+  await shot("flashcard-concept-front");
+  await page.locator(".flashcard-study-surface").press(" ");
+  await expect(page.locator(".flashcard-answer")).toBeVisible();
+  await expect(page.locator(".flashcard-ratings button")).toHaveCount(3);
+  await expect(page.getByText(/It binds the name/)).toBeVisible();
+  await shot("flashcard-concept-answer");
+  await page.locator(".flashcard-study-surface").press("3");
+  await expect(page.getByText(/CARD 2 \/ 8/)).toBeVisible();
+  await page.getByRole("button", { name: "Return to flashcards", exact: true }).click();
+
+  await page.getByLabel("Flashcard topic", { exact: true }).selectOption("collections");
+  await page
+    .getByRole("button", { name: "Review this view", exact: true })
+    .click();
+  await expect(page.locator(".flashcard-study-surface .code-panel")).toBeVisible();
+  await expect(page.getByText(/What is x after this code/)).toBeVisible();
+  await shot("flashcard-code-front");
+  await page.getByRole("button", { name: /^Show answer/ }).click();
+  await expect(page.locator(".flashcard-output")).toContainText("[1, 2, 3]");
+  await shot("flashcard-code-answer");
+  await page.getByRole("button", { name: /Again/ }).click();
+  await expect(page.getByText(/CARD 2 \/ 9/)).toBeVisible();
+  await page.getByRole("button", { name: "Return to flashcards", exact: true }).click();
+  await page.getByRole("button", { name: "Needs Work", exact: true }).click();
+  await expect(page.getByText(/1 cards in this view|2 cards in this view/, { exact: false })).toBeVisible();
+
+  await page.getByRole("button", { name: "All Cards", exact: true }).click();
+  await page.getByLabel("Flashcard topic", { exact: true }).selectOption("functions");
+  await expect(page.getByText(/8 cards in this view/, { exact: false })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Review this view", exact: true })
+    .click();
+  for (let index = 0; index < 8; index += 1) {
+    await page.getByRole("button", { name: /^Show answer/ }).click();
+    await page.getByRole("button", { name: /Hard/ }).click();
+  }
+  await expect(page.getByText("REVIEW COMPLETE", { exact: true })).toBeVisible();
+  await expect(page.getByText(/8 cards reviewed/)).toBeVisible();
+  await shot("flashcard-summary");
+  await page
+    .getByRole("button", { name: "Return to Mission Control", exact: true })
+    .click();
+  passed(
+    "Flashcards concept/code fronts, keyboard reveal/rating, Hard, summary, and priority filter",
+    { starterCards: flashcards.length },
+  );
+  await nav("Mission control");
+}
+
+async function masterResetRegression(actualSnapshot) {
+  await page
+    .getByRole("button", { name: "Preferences", exact: true })
+    .click();
+  await expect(page.getByRole("heading", { name: "Master reset", exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Reset progress and settings", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", {
+      name: "Reset everything and start over?",
+      exact: true,
+    }),
+  ).toContainText(
+    "Reset everything and start over?",
+  );
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Reset progress and settings", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Reset progress and settings", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Yes, reset everything", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Start baseline mission", exact: true }),
+  ).toBeVisible();
+  const reset = validateProgress(await saved());
+  expect(reset).toMatchObject({
+    onboardingComplete: false,
+    baselineComplete: false,
+    xp: 0,
+    sessions: 0,
+    studyDays: [],
+    concepts: {},
+    attempts: [],
+    exams: [],
+    flashcards: {},
+  });
+  expect(reset.activeAssessment).toBeUndefined();
+  expect(reset.settings).toEqual(createProgress(reset.startedAt).settings);
+  await shot("master-reset");
+
+  await close();
+  await launch();
+  await expect(
+    page.getByRole("button", { name: "Start baseline mission", exact: true }),
+  ).toBeVisible();
+  expect(validateProgress(await saved())).toMatchObject({
+    onboardingComplete: false,
+    xp: 0,
+    attempts: [],
+    exams: [],
+    flashcards: {},
+  });
+  passed("Master reset remains cleared after a desktop restart");
+
+  await ipc("save_progress", { progress: validateProgress(actualSnapshot) });
+  await page.reload();
+  await expect(page.locator(".home-screen")).toBeVisible();
+  expect(validateProgress(await saved())).toEqual(actualSnapshot);
+  passed(
+    "Confirmed master reset clears all learner state and restores default settings",
+    { fixtureAssisted: false, restoredAfterCheck: true },
+  );
+}
+
 async function loadFixture(progress) {
   await saved();
   await ipc("save_progress", { progress: validateProgress(progress) });
@@ -474,6 +653,34 @@ async function fixtureRegressions(actualSnapshot) {
     restoreStatus: "PENDING",
   };
   try {
+    const caughtUpBase = createProgress(Date.now());
+    const caughtUpNow = Date.now();
+    const caughtUpStates = {};
+    for (const card of flashcards) {
+      const state = rateFlashcard(caughtUpBase, card, "got-it", caughtUpNow);
+      caughtUpStates[card.id] = state;
+    }
+    const caughtUp = {
+      ...structuredClone(actualSnapshot),
+      flashcards: caughtUpStates,
+    };
+    await loadFixture(caughtUp);
+    await nav("Flashcards");
+    await expect(page.getByText("Your due queue is clear.", { exact: true })).toBeVisible();
+    const caughtUpButtons = page.getByRole("button", {
+      name: "You're caught up",
+      exact: true,
+    });
+    await expect(caughtUpButtons).toHaveCount(2);
+    for (const button of await caughtUpButtons.all()) {
+      await expect(button).toBeDisabled();
+    }
+    await shot("flashcards-caught-up");
+    passed("Flashcards caught-up state reports no due cards without fake urgency", {
+      fixtureAssisted: true,
+      due: 0,
+    });
+    await nav("Mission control");
     const ordered = challenges.find((q) => q.type === "order-lines");
     expect(ordered).toBeTruthy();
     for (const correct of [false, true]) {
@@ -739,7 +946,16 @@ try {
     page
       .getByRole("navigation", { name: "Main navigation" })
       .getByRole("button", { name: "Training deck", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
+  await nav("Training deck");
+  await expect(
+    page.getByRole("button", { name: "Start a mixed mission", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Resume", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Resume", exact: true }).click();
+  await expect(page.locator(".assessment-screen")).toBeVisible();
   await shot("baseline");
   await finishAssessment("baseline");
   await page
@@ -747,6 +963,7 @@ try {
     .last()
     .click();
   await shot("home");
+  await flashcardUIRegression();
   await page
     .getByRole("button", { name: "Start today’s mission", exact: true })
     .click();
@@ -981,11 +1198,24 @@ try {
   await nav("Mission control");
   await shot("home-text-125");
   passed("Text scaling and preferences persist");
+  expect((await saved()).settings.textScale).toBe(1.25);
+  await ctrlWheel(-120);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.style.fontSize))
+    .toBe("22px");
+  expect((await saved()).settings.textScale).toBe(1.375);
+  await ctrlWheel(120);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.style.fontSize))
+    .toBe("20px");
+  expect((await saved()).settings.textScale).toBe(1.25);
+  passed("Ctrl+mouse wheel changes and persists text zoom");
   const actualSnapshot = validateProgress(await saved());
   await writeFile(
     path.join(output, "actual-run-progress.json"),
     JSON.stringify(actualSnapshot, null, 2),
   );
+  await masterResetRegression(actualSnapshot);
   await fixtureRegressions(actualSnapshot);
   await duplicateWindowRegression(actualSnapshot);
   const final = validateProgress(await saved());

@@ -44,17 +44,19 @@ This builds the CPython helper, frontend, optimized Tauri executable and a per-u
 2. Start today's mission. Standard sessions contain 12 challenges; preferences offer 6 or 20.
 3. Predict, optionally mark confidence, then lock the answer. Watch the real Python Machine, examine the turning point, and explain it in your own words.
 4. Missed or uncertain questions receive a related variation. Debugging incidents ask for the faulty line, a repair, and a real execution check.
-5. Take a 24-question, 30-minute mixed mock exam. Review answers and topic scores afterward. Closing and reopening preserves its answers and original deadline.
+5. Use Flashcards for a short retrieval pass. Recommended cards are due-first and tied to the concepts behind your Training Deck and submitted Mock Exam mistakes.
+6. Take a 24-question, 30-minute mixed mock exam. Review answers and topic scores afterward. Closing and reopening preserves its answers and original deadline.
 
-Training attempts are saved as they happen. An unfinished training sequence resumes while the app stays open; after a full restart, completed attempts remain saved and a newly recommended sequence begins. Baselines and exams resume across restarts. Optional scratchpad text is temporary.
+Training attempts are saved as they happen. An unfinished training sequence resumes while the app stays open; after a full restart, completed attempts remain saved and a newly recommended sequence begins. Baselines and exams resume across restarts. While an assessment is active, the other sections remain browseable, the timer continues, and the Resume banner returns to the assessment; starting another mission returns there as well. Optional scratchpad text is temporary.
 
-When the page/code has focus: `1–4` select an answer, `Enter` locks/continues, `H` requests a guided hint. Within Python Machine, `Space` advances and `R` resets. Focused buttons retain their native Enter/Space behavior, and editable fields retain ordinary typing. Tab navigation, visible focus, reduced motion, and text scaling are supported.
+When the page/code has focus: `1–4` select an answer, `Enter` locks/continues, `H` requests a guided hint. Within Python Machine, `Space` advances and `R` resets. Hold `Ctrl` and use the mouse wheel anywhere in the app to change text size; the setting is saved on this device. Focused buttons retain their native Enter/Space behavior, and editable fields retain ordinary typing. Tab navigation, visible focus, reduced motion, and text scaling are supported.
 
 ## What's included
 
 - **232 exercises across 58 concept families**, with four deterministic variations each.
 - All 15 challenge types: output prediction, next line, variable value, true condition, function return, bug finding, repair selection, missing line, line ordering, collection state, exception identification, traceback reading, scope, bug-exposing input, and loop count.
 - **20 two-stage debugging exercises** and a five-case boss mission.
+- **64 retention flashcards** across eight topics, including concept-recall and code-reading cards with deterministic spaced review.
 - Variables, numeric types, arithmetic, assignment/reassignment, strings, truthiness, if/elif/else, lists/tuples/dictionaries/sets, indexes/slices/membership, range/for/while, counters/accumulators/break/continue, functions/arguments/returns, scope/default arguments/mutable defaults, mutation/comprehensions, common built-ins, exceptions and try/except/finally.
 - Local XP, levels, study-day counts, milestones, topic practice, mock history, adjustable target and exam topic weights.
 
@@ -74,6 +76,8 @@ Implementation references: [CPython tracing documentation](https://docs.python.o
 
 Each concept family tracks attempts, correctness, last eight results, hints, unaided accuracy, time, confidence mistakes, last practice and review due time. Confident errors are due after 10 minutes; other errors after one hour; uncertain correct answers after four hours; assisted correct answers after eight hours. Repeated confident unaided success spaces reviews to 1, 3, 7 and 14 days. Missions reserve up to 40% for due review and balance the remaining topics against the blueprint. Recent variants are avoided when alternatives exist.
 
+Flashcards use the same local progress snapshot. Again returns a card after 10 minutes and keeps it in the current session once; Hard uses a shorter near-term interval; Got It advances through 1, 3, 7, 14 and 30 days. A wrong Training Deck answer or submitted Mock Exam miss promotes only the cards explicitly linked to that challenge, with high-confidence misses receiving the strongest signal. Flashcard ratings guide retention timing but cannot affect mock-exam scoring or readiness claims.
+
 Guided support fades after repeated unaided success on the same concept: light support after at least three of the last four answers are correct without hints; independent practice after at least seven of the last eight, including the latest. Mistakes restore help. Light practice removes pre-answer hints; independent practice also removes the Machine. Assessment modes always hide assistance.
 
 The roadmap uses 32 and 100 unaided correct answers as simple phase markers. Basic practice begins at difficulty 1, adds difficulty 2 after 12 unaided correct answers, and difficulty 3 at 32. These are transparent product rules, not a validated psychological mastery model. Topic labels summarize practiced concepts; mock exams provide broader evidence. No practice score guarantees an employer's result.
@@ -84,7 +88,7 @@ Normal progress lives in `%APPDATA%/local.python-mission-control.app/progress.sq
 
 An OS-held `profile.lock` allows only one app instance to access a profile at a time. A second window shows a clear error; close the first and use **Retry connection** to load its latest progress. A leftover marker after a crash does not block startup because ownership depends on the live handle.
 
-Before manual recovery, close the app and preserve the entire database. The `snapshots` table has `current` and `previous` rows. Recovery is an explicit local operation; there is no destructive reset button. An uninstall or app update should not be used as a recovery procedure.
+Before manual recovery, close the app and preserve the entire database. The `snapshots` table has `current` and `previous` rows. Preferences includes a confirmed **Master reset** that atomically replaces the profile with first-run defaults, clears the recovery snapshot, and cannot be undone. An uninstall or app update should not be used as a recovery procedure.
 
 For isolated testing, a startup-only `PMC_PROFILE_DIR` environment variable can point to an absolute local directory. SQLite is stored directly there and WebView2 state under `webview/main/`. The renderer cannot change this path. The smoke script uses only test-owned folders under `work/desktop-profile/`.
 

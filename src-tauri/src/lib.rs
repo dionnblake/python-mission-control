@@ -83,6 +83,11 @@ fn save_progress(app: tauri::AppHandle, progress: Value) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn reset_progress(app: tauri::AppHandle, progress: Value) -> Result<(), String> {
+    storage::reset(&progress_path(&app)?, &progress)
+}
+
+#[tauri::command]
 async fn run_trace(app: tauri::AppHandle, gate: tauri::State<'_, RunnerGate>, code: String) -> Result<runner::TraceResult, String> {
     let resource_dir = app.path().resource_dir().map_err(|e| format!("Could not locate the Python runtime: {e}"))?;
     let guard = gate.0.clone();
@@ -127,7 +132,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![load_progress, save_progress, run_trace, runtime_info])
+        .invoke_handler(tauri::generate_handler![load_progress, save_progress, reset_progress, run_trace, runtime_info])
         .run(context)
         .expect("Python Mission Control could not start");
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Activity,
   ArrowRight,
+  BrainCircuit,
   BookOpen,
   Check,
   CircleHelp,
@@ -21,7 +22,7 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
-import { challenges, topics, baselineIds, bossIds } from "./content";
+import { challenges, topics, baselineIds, bossIds, flashcards } from "./content";
 import {
   conceptStatus,
   createExam,
@@ -35,7 +36,12 @@ import {
   topicSummary,
   validateProgress,
 } from "./core/learning";
-import { loadProgress, saveProgress } from "./bridge";
+import { flashcardStats } from "./core/flashcards";
+import {
+  loadProgress,
+  resetProgress as resetSavedProgress,
+  saveProgress,
+} from "./bridge";
 import { APP_NAME, APP_VERSION, EXAM_MINUTES, EXAM_QUESTIONS } from "./config";
 import type {
   ActiveAssessment,
@@ -49,10 +55,12 @@ import { ChallengeView } from "./components/ChallengeView";
 import { Assessment } from "./components/Assessment";
 import { Results } from "./components/Results";
 import { CodeBlock } from "./components/CodeBlock";
+import { Flashcards } from "./components/Flashcards";
 
 type Route =
   | "home"
   | "train"
+  | "flashcards"
   | "progress"
   | "exams"
   | "settings"
@@ -98,6 +106,17 @@ function bestExam(progress: Progress) {
   return scores.length ? Math.max(...scores) : null;
 }
 const minutes = (n: number) => Math.max(1, Math.round(n / 60000));
+const estimateFlashcardMinutes = (count: number) => Math.max(1, Math.ceil(count / 2));
+const TEXT_SCALE_MIN = 0.75;
+const TEXT_SCALE_MAX = 2;
+const TEXT_SCALE_STEP = 0.125;
+const TEXT_SCALE_OPTIONS = Array.from({ length: 11 }, (_, index) =>
+  Math.round((TEXT_SCALE_MIN + index * TEXT_SCALE_STEP) * 1000) / 1000,
+);
+function textScaleLabel(scale: number) {
+  const percent = Math.round(scale * 1000) / 10;
+  return `${percent === 100 ? "Standard" : percent < 100 ? "Smaller" : "Larger"} · ${percent}%`;
+}
 
 export default function App() {
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -154,14 +173,16 @@ export default function App() {
     window.addEventListener("beforeunload", handle);
     return () => window.removeEventListener("beforeunload", handle);
   }, [saving, saveError]);
-  function persist(p: Progress) {
+  const persist = useCallback((p: Progress, options: { clearRecovery?: boolean } = {}) => {
     latest.current = p;
     setProgress(p);
     setSaving(true);
     const n = ++revision.current;
     saves.current = saves.current
       .catch(() => undefined)
-      .then(() => saveProgress(p))
+      .then(() =>
+        options.clearRecovery ? resetSavedProgress(p) : saveProgress(p),
+      )
       .then(() => {
         if (revision.current === n) {
           setSaving(false);
@@ -174,10 +195,35 @@ export default function App() {
           setSaveError(String(e));
         }
       });
-  }
-  function update(fn: (p: Progress) => Progress) {
+  }, []);
+  const update = useCallback((fn: (p: Progress) => Progress) => {
     if (latest.current) persist(fn(latest.current));
-  }
+  }, [persist]);
+  useEffect(() => {
+    function handleWheel(event: WheelEvent) {
+      if ((!event.ctrlKey && !event.metaKey) || event.deltaY === 0) return;
+      event.preventDefault();
+      const current = latest.current?.settings.textScale ?? 1;
+      const direction = event.deltaY < 0 ? 1 : -1;
+      const next = Math.min(
+        TEXT_SCALE_MAX,
+        Math.max(
+          TEXT_SCALE_MIN,
+          Math.round(
+            (current + direction * TEXT_SCALE_STEP) / TEXT_SCALE_STEP,
+          ) * TEXT_SCALE_STEP,
+        ),
+      );
+      const rounded = Math.round(next * 1000) / 1000;
+      if (rounded === current) return;
+      update((p) => ({
+        ...p,
+        settings: { ...p.settings, textScale: rounded },
+      }));
+    }
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [update]);
   function beginAssessment(mode: "baseline" | "exam") {
     if (!latest.current) return;
     if (latest.current.activeAssessment) {
@@ -385,6 +431,12 @@ export default function App() {
     correct: boolean,
     elapsedMs: number,
   ) {
+    if (
+      !latest.current ||
+      !missionRef.current ||
+      missionRef.current.id !== m.id
+    )
+      return;
     const q = m.questions[questionIndex];
     const n = latest.current!.attempts.filter((a) =>
       a.id.startsWith(`${m.id}:${questionIndex}:repair:`),
@@ -436,7 +488,19 @@ export default function App() {
     }
   }
   function navigate(next: Route) {
-    setRoute(latest.current?.activeAssessment ? "assessment" : next);
+    if (latest.current?.activeAssessment && next === "flashcards") {
+      setRoute("assessment");
+      return;
+    }
+    setRoute(next);
+  }
+  function resetProgress() {
+    missionRef.current = null;
+    setMission(null);
+    setResult(null);
+    setFinish(null);
+    setRoute("home");
+    persist(createProgress(), { clearRecovery: true });
   }
   if (!progress)
     return (
@@ -471,6 +535,7 @@ export default function App() {
   const navigation = [
     { id: "home" as Route, label: "Mission control", icon: LayoutDashboard },
     { id: "train" as Route, label: "Training deck", icon: BookOpen },
+    { id: "flashcards" as Route, label: "Flashcards", icon: BrainCircuit },
     { id: "progress" as Route, label: "Your progress", icon: Activity },
     { id: "exams" as Route, label: "Mock exams", icon: GraduationCap },
   ];
@@ -490,12 +555,6 @@ export default function App() {
           {navigation.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              disabled={Boolean(active)}
-              title={
-                active
-                  ? "Finish or submit the assessment to return to training."
-                  : undefined
-              }
               className={
                 route === id ||
                 (id === "train" && route === "session") ||
@@ -592,6 +651,7 @@ export default function App() {
               Your {active.mode === "exam" ? "timed exam" : "baseline"} is still
               in progress.
               {active.deadline ? " The timer is still running." : ""}
+              {" Use Resume to return when you’re ready."}
             </span>
             <button
               className="text-button"
@@ -614,16 +674,28 @@ export default function App() {
               onTrain={() => beginMission()}
               onBaseline={() => beginAssessment("baseline")}
               onProgress={() => navigate("progress")}
+              onFlashcards={() => navigate("flashcards")}
               onExams={() => navigate("exams")}
             />
           ) : route === "train" ? (
             <TrainingDeck progress={progress} onTrain={beginMission} />
+          ) : route === "flashcards" ? (
+            <Flashcards
+              progress={progress}
+              onUpdate={update}
+              onHome={() => navigate("home")}
+            />
           ) : route === "progress" ? (
-            <ProgressScreen progress={progress} onTrain={beginMission} />
+            <ProgressScreen
+              progress={progress}
+              onTrain={beginMission}
+              onFlashcards={() => navigate("flashcards")}
+            />
           ) : route === "settings" ? (
             <Preferences
               progress={progress}
               onSave={(settings) => update((p) => ({ ...p, settings }))}
+              onReset={resetProgress}
             />
           ) : route === "exams" ? (
             <Exams
@@ -710,6 +782,7 @@ export default function App() {
               onTrain={() => beginMission()}
               onBaseline={() => beginAssessment("baseline")}
               onProgress={() => navigate("progress")}
+              onFlashcards={() => navigate("flashcards")}
               onExams={() => navigate("exams")}
             />
           )}
@@ -807,12 +880,14 @@ function Home({
   onTrain,
   onBaseline,
   onProgress,
+  onFlashcards,
   onExams,
 }: {
   progress: Progress;
   onTrain: () => void;
   onBaseline: () => void;
   onProgress: () => void;
+  onFlashcards: () => void;
   onExams: () => void;
 }) {
   const best = bestExam(progress);
@@ -828,6 +903,7 @@ function Home({
         (b.summary ? b.summary.correct / b.summary.attempts : 0),
     )
     .slice(0, 3);
+  const flashcard = flashcardStats(flashcards, progress);
   return (
     <div className="home-screen">
       <div className="page-heading">
@@ -928,6 +1004,36 @@ function Home({
           </div>
           <span className="coordinate">PREDICT → TRACE → UNDERSTAND</span>
         </div>
+      </section>
+      <section className="flashcard-home-strip">
+        <div className="flashcard-home-mark">
+          <BrainCircuit size={24} />
+        </div>
+        <div className="flashcard-home-copy">
+          <span className="eyebrow">FLASHCARD REVIEW</span>
+          <h2>
+            {flashcard.due
+              ? `${flashcard.due} card${flashcard.due === 1 ? "" : "s"} ready when you are.`
+              : flashcard.needsWork
+                ? "Your due queue is clear. A few weak ideas remain."
+                : "Build a retention queue as you practice."}
+          </h2>
+          <p>
+            {flashcard.due
+              ? `Start with ${flashcard.priorityTopic ? topics.find((t) => t.id === flashcard.priorityTopic)?.name : "your next priority"}. About ${estimateFlashcardMinutes(Math.min(flashcard.due, 12))} minutes for a short pass.`
+              : flashcard.needsWork
+                ? "Review needs work without changing your Training Deck plan."
+                : "Cards connect to the concepts you meet in the Training Deck and Mock Exams."}
+          </p>
+        </div>
+        <div className="flashcard-home-count">
+          <b>{flashcard.due}</b>
+          <span>due now</span>
+        </div>
+        <button className="secondary" onClick={onFlashcards}>
+          Open flashcards
+          <ArrowRight size={17} />
+        </button>
       </section>
       <div className="home-secondary">
         <section className="focus-section">
@@ -1115,9 +1221,11 @@ function TrainingDeck({
 function ProgressScreen({
   progress,
   onTrain,
+  onFlashcards,
 }: {
   progress: Progress;
   onTrain: (topic?: Topic) => void;
+  onFlashcards: () => void;
 }) {
   const phase = phaseNumber(progress);
   const attempts = progress.attempts;
@@ -1126,6 +1234,7 @@ function ProgressScreen({
   const confidentWrong = attempts.filter(
     (a) => !a.correct && a.confidence >= 4,
   ).length;
+  const flashcard = flashcardStats(flashcards, progress);
   return (
     <div>
       <div className="page-heading">
@@ -1163,6 +1272,42 @@ function ProgressScreen({
           <small>receive earlier review</small>
         </div>
       </div>
+      <section className="progress-flashcards">
+        <div className="section-heading">
+          <div>
+            <h2>Flashcard retention</h2>
+            <p>Self-ratings guide review timing; they do not replace exam evidence.</p>
+          </div>
+          <button className="text-button" onClick={onFlashcards}>
+            Open review
+            <ArrowRight size={15} />
+          </button>
+        </div>
+        <div className="progress-flashcard-grid">
+          <div>
+            <span>Due now</span>
+            <b>{flashcard.due}</b>
+          </div>
+          <div>
+            <span>Recall rate</span>
+            <b>{flashcard.recallRate === null ? "—" : `${flashcard.recallRate}%`}</b>
+            <small>{flashcard.reviewed ? `${flashcard.reviewed} ratings recorded` : "No ratings yet"}</small>
+          </div>
+          <div>
+            <span>Needs work</span>
+            <b>{flashcard.needsWork}</b>
+            <small>{flashcard.weakConcepts} concepts flagged</small>
+          </div>
+          <div className="progress-flashcard-note">
+            <BrainCircuit size={18} />
+            <span>
+              {flashcard.priorityTopic
+                ? `${topics.find((t) => t.id === flashcard.priorityTopic)?.name} is currently the strongest review signal.`
+                : "Mistakes will promote linked cards automatically."}
+            </span>
+          </div>
+        </div>
+      </section>
       <section>
         <div className="section-heading">
           <h2>Your concept map</h2>
@@ -1414,13 +1559,21 @@ function Exams({
 function Preferences({
   progress,
   onSave,
+  onReset,
 }: {
   progress: Progress;
   onSave: (s: Progress["settings"]) => void;
+  onReset: () => void;
 }) {
   const [settings, setSettings] = useState(progress.settings);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [resetConfirming, setResetConfirming] = useState(false);
+  const resetTrigger = useRef<HTMLButtonElement>(null);
+  const resetCancel = useRef<HTMLButtonElement>(null);
+  const textScaleOptions = [
+    ...new Set([...TEXT_SCALE_OPTIONS, settings.textScale]),
+  ].sort((a, b) => a - b);
   function save() {
     if (
       !Number.isFinite(settings.targetScore) ||
@@ -1440,6 +1593,14 @@ function Preferences({
     setError("");
     onSave(settings);
     setSaved(true);
+  }
+  function armReset() {
+    setResetConfirming(true);
+    window.requestAnimationFrame(() => resetCancel.current?.focus());
+  }
+  function cancelReset() {
+    setResetConfirming(false);
+    window.requestAnimationFrame(() => resetTrigger.current?.focus());
   }
   return (
     <div className="preferences-screen">
@@ -1501,7 +1662,10 @@ function Preferences({
       <section className="settings-section">
         <div>
           <h2>Reading size</h2>
-          <p>Increase the interface and code text together.</p>
+          <p>
+            Increase the interface and code text together. Hold Ctrl and use
+            the mouse wheel anywhere in the app to zoom; it saves automatically.
+          </p>
         </div>
         <div>
           <label htmlFor="text-size">Text size</label>
@@ -1514,9 +1678,11 @@ function Preferences({
               setSaved(false);
             }}
           >
-            <option value={1}>Standard · 100%</option>
-            <option value={1.125}>Larger · 112.5%</option>
-            <option value={1.25}>Largest · 125%</option>
+            {textScaleOptions.map((scale) => (
+              <option key={scale} value={scale}>
+                {textScaleLabel(scale)}
+              </option>
+            ))}
           </select>
         </div>
       </section>
@@ -1565,6 +1731,56 @@ function Preferences({
         </button>
         {saved && <span role="status">Preferences applied.</span>}
       </div>
+      <section className="settings-section reset-section">
+        <div>
+          <h2>Master reset</h2>
+          <p>
+            Clear all XP, missions, attempts, exams, flashcards, and active
+            assessments. Your settings return to their defaults. This cannot
+            be undone.
+          </p>
+        </div>
+        <div className="reset-controls">
+          {!resetConfirming ? (
+            <button
+              ref={resetTrigger}
+              className="reset-button"
+              aria-expanded={resetConfirming}
+              onClick={armReset}
+            >
+              <RotateCcw size={18} />
+              Reset progress and settings
+            </button>
+          ) : (
+            <div
+              className="reset-confirmation"
+              role="region"
+              aria-labelledby="reset-confirmation-title"
+            >
+              <h3 id="reset-confirmation-title">
+                Reset everything and start over?
+              </h3>
+              <p>
+                This will take you back to the first-run screen with 0 XP and
+                no saved study history.
+              </p>
+              <div className="actions">
+                <button
+                  ref={resetCancel}
+                  className="secondary"
+                  onClick={cancelReset}
+                >
+                  Cancel
+                </button>
+                <button className="reset-button" onClick={onReset}>
+                  <RotateCcw size={18} />
+                  Yes, reset everything
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
       <p className="footnote">
         Progress is stored in the desktop app’s local database. No account or
         network connection is needed to study.
