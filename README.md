@@ -2,6 +2,10 @@
 
 **Offline Python-learning desktop application with real execution tracing.**
 
+[![Python Mission Control: animated visual walkthrough](assets/demo.gif)](docs/WALKTHROUGH.md)
+
+*15-second looping slideshow of the existing public images. Historical native screenshots: September 11, 2026 | Isolated test profile | Slideshow.*
+
 A learner needs to predict what Python will do, inspect the state changes and return to practice without losing progress. Python Mission Control combines lessons, debugging exercises and review scheduling in a native Windows application. It is a Python-learning product, not a business operations console.
 
 ![Python Mission Control: overview](assets/overview.png)
